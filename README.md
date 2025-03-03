@@ -34,35 +34,65 @@ npm start
 ```
 
 ## APIs
-POST
-'/tax/transctions'
-Input:
+### Ingest Endpoint
+Allows a user to send sales and tax payment events to our service
+#### POST
+```bash
+'http://localhost:5000/tax/transctions'
+```
+Request:
+```bash
 {
 	“eventType”: “SALES”,
-	“date”: string - Date and time ISO 8601
-“invoiceId”: string,
-“items”: [{
- 		“itemId”: string,
- 		“cost”: number - amount in pennies,
- 		“taxRate”: number
-}]
+	“date”: "YYYY-MM-DDTHH:MM:SSZ"
+	“invoiceId”: UUID,
+	“items”: [{
+		“itemId”: UUID,
+		“cost”: number - amount in pennies,
+		“taxRate”:  number (between 0-1)
+	}]
 }
+```
+Response:
+```bash
+200 OK
+```
 
-## Contributing
+### Query Tax Position Endpoint
+Allows a user to query their tax position at any given point in time. This should calculate the tax position from ingested events and any further user interaction
+#### GET
+```bash
+'http://localhost:5000/tax/tax-position'
+```
+Request:
+```bash
+http://localhost:5000/tax/tax-position?date=YYYY-MM-DDTHH:MM:SSZ
+```
+Response:
+```bash
+200
+{
+    "date": "YYYY-MM-DDTHH:MM:SSZ",
+    "taxPosition": number - amount in pennies
+}
+```
 
-Contributions are welcome! Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes.
-4. Commit your changes (`git commit -m 'Add some feature'`).
-5. Push to the branch (`git push origin feature-branch`).
-6. Open a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For any questions or feedback, please contact [yourname@example.com](mailto:yourname@example.com).
+### Amend Sale Endpoint
+Allows a user to modify an item within a sale at a specific point in time. The service must accept all amendments even if the sale or item does not yet exist. The sales event can be received by the service after the amendment.
+#### PATCH
+```bash
+'http://localhost:5000/tax/sale'
+```
+Request:
+```bash
+{
+        date: 'YYYY-MM-DDTHH:MM:SSZ',
+        invoiceId: UUID,
+        cost: number - amount in pennies,
+        taxRate: number (between 0-1),
+}
+```
+Response:
+```bash
+200 OK
+```
