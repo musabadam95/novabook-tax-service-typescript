@@ -95,10 +95,10 @@ router.post('/transactions', (req, res) => {
 });
 
 router.get<MessageResponse>('/tax-position', (req, res) => {
-  if (!req.query.date) {
+  if (req.body === null) {
     return res.status(400).send({ message: 'Invalid input' });
   }
-  const queryDate = req.query.date.toString();
+  const queryDate = req.query?.date ? req.query.date.toString() : '';
   const enochDate = Date.parse(queryDate);
   console.log(enochDate);
 

@@ -140,7 +140,8 @@ describe('Adding events', () => {
 
   it('should return invalid input when requesting tax position with missing date', async () => {
     const response = await request(app)
-      .get(path + 'tax-position');
+      .get(path + 'tax-position')
+      .query();
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe('Invalid input');

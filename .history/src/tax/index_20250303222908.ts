@@ -7,11 +7,6 @@ const router = express.Router();
 let saleEventList: SaleEvent[] = [];
 let taxPaymentEventList: TaxPayment[] = [];
 
-export function resetTax() {
-  saleEventList = [];
-  taxPaymentEventList = [];
-}
-
 function calculateTaxPosition() {
   let totalTax = 0;
   let totalTaxPayment = 0;
@@ -51,21 +46,23 @@ function calculateTaxPositionToDate(taxDate: number) {
   return taxPosition;
 }
 
+export async function clearAllData() {
+  saleEventList = [];
+  taxPaymentEventList = [];
+}
+
 router.post('/transactions', (req, res) => {
   try {
     if (!req.body === null) {
       return res.status(400).send({ message: 'Invalid input' });
     }
-
     const enochDate = Date.parse(req.body.date);
     if (isNaN(enochDate)) {
       return res.status(400).send({ message: 'Invalid date format' });
     }
 
     if (req.body?.eventType === EventType.SALES) {
-      if (!req.body || typeof req.body !== 'object' || !('invoiceId' in req.body) || !('date' in req.body) || !('items' in req.body)) {
-        return res.status(400).send({ message: 'Invalid input' });
-      }
+
       const salesEvent = {
         date: enochDate,
         invoiceId: req.body.invoiceId,
@@ -75,9 +72,6 @@ router.post('/transactions', (req, res) => {
       return res.status(202).send();
     }
     if (req.body?.eventType === EventType.TAX_PAYMENT) {
-      if (!req.body || typeof req.body !== 'object' || !('date' in req.body) || !('amount' in req.body)) {
-        return res.status(400).send({ message: 'Invalid input' });
-      }
       const taxPaymentEvent = {
         date: enochDate,
         amount: req.body.amount,
@@ -94,14 +88,13 @@ router.post('/transactions', (req, res) => {
   calculateTaxPosition();
 });
 
+
 router.get<MessageResponse>('/tax-position', (req, res) => {
   if (!req.query.date) {
-    return res.status(400).send({ message: 'Invalid input' });
+    return res.status(400).send();
   }
   const queryDate = req.query.date.toString();
   const enochDate = Date.parse(queryDate);
-  console.log(enochDate);
-
   if (isNaN(enochDate)) {
     return res.status(400).send({ message: 'Invalid date format' });
   }
@@ -115,11 +108,12 @@ router.get<MessageResponse>('/tax-position', (req, res) => {
 });
 
 router.patch<PatchSaleEvent, MessageResponse>('/sale', (req, res) => {
-
-  if (!req.body || typeof req.body !== 'object' || !('invoiceId' in req.body) || !('date' in req.body) || !('itemId' in req.body) || !('cost' in req.body) || !('taxRate' in req.body)) {
+  if (!req.body === null) {
     return res.status(400).send({ message: 'Invalid input' });
   }
-
+  if (!req.body.date) {
+    return res.status(400).send({ message: 'Missing date format' });
+  }
   const updatedSaleEvent: PatchSaleEvent = req.body;
   const enochDate = Date.parse(updatedSaleEvent.date);
   if (isNaN(enochDate)) {
@@ -168,5 +162,7 @@ router.patch<PatchSaleEvent, MessageResponse>('/sale', (req, res) => {
   calculateTaxPosition();
   return res.status(202).send();
 });
+
+
 
 export default router;

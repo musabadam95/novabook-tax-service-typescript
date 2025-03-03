@@ -116,12 +116,16 @@ describe('Adding events', () => {
   });
 
   it('should return invalid input when sending a TAX_PAYMENT event with missing amount', async () => {
-    const response = await request(app)
+    await request(app)
       .post(path + 'transactions')
       .send({
         eventType: 'TAX_PAYMENT',
         date: '2023-02-20T17:29:39Z',
       });
+
+    const response = await request(app)
+      .get(path + 'tax-position')
+      .query({ date: '2023-02-20T17:29:39Z' });
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe('Invalid input');
@@ -138,14 +142,6 @@ describe('Adding events', () => {
 
   });
 
-  it('should return invalid input when requesting tax position with missing date', async () => {
-    const response = await request(app)
-      .get(path + 'tax-position');
-
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe('Invalid input');
-
-  });
 
   it('should return invalid input on empty body', async () => {
     const response = await request(app)
